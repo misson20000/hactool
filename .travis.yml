@@ -1,0 +1,7 @@
+language: c
+script:
+  - cp config.mk.template config.mk
+  - make
+os:
+  - linux
+  - osx
