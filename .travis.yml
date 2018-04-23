@@ -1,7 +1,32 @@
 language: c
+matrix:
+  include:
+  - os: linux
+    env: HACTOOL_CC=x86_64-linux-gnu-gcc OS=linux
+  - os: linux
+    env: HACTOOL_CC=x86_64-w64-mingw32-gcc OS=windows WINDOWS=1 EXTENSION=.exe
+    addons:
+      apt:
+        packages:
+          - gcc-mingw-w64-x86-64
+  - os: osx
+    env: HACTOOL_CC=x86_64-apple-darwin-gcc OS=osx
 script:
-  - cp config.mk.template config.mk
-  - make
-os:
-  - linux
-  - osx
+  - |
+    echo << EOF > config.mk
+    CFLAGS = -O2 -Wall -Wextra -pedantic -std=gnu11 -fPIC
+    LDFLAGS = -lmbedtls -lmbedx509 -lmbedcrypto
+    EOF
+  - make CC=$HACTOOL_CC
+after_success:
+  - mv hactool hactool_$OS$EXTENSION
+deploy:
+  - provider: releases
+    api_key: $GITHUB_TOKEN
+    file:
+      - "hactool_$OS$EXTENSION"
+    skip-cleanup: true
+    draft: true
+    tag_name: $TRAVIS_TAG
+    on:
+      tags: true
